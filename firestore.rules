@@ -1,0 +1,57 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Users Collection ---
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- Jobs Collection ---
+    match /jobs/{jobId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'masjid' || isAdmin());
+      allow update: if (isSignedIn() && resource.data.masjidId == request.auth.uid) || isAdmin();
+      allow delete: if (isSignedIn() && resource.data.masjidId == request.auth.uid) || isAdmin();
+    }
+
+    // --- Applications Collection ---
+    match /applications/{appId} {
+      allow read: if isSignedIn() && (resource.data.candidateId == request.auth.uid || exists(/databases/$(database)/documents/jobs/$(resource.data.jobId)) && get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.masjidId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['aalim', 'muadhin'];
+      allow update: if (isSignedIn() && (resource.data.candidateId == request.auth.uid || get(/databases/$(database)/documents/jobs/$(resource.data.jobId)).data.masjidId == request.auth.uid)) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- Notifications Collection ---
+    match /notifications/{notifId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isAdmin() || (isSignedIn() && request.resource.data.userId != null); // System generated or admin
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+  }
+}

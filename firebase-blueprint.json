@@ -1,0 +1,108 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Unified profile for Aalims, Muadhins, and Masjid Administrators",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "role": { "type": "string", "enum": ["aalim", "muadhin", "masjid", "admin"] },
+        "fullName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "email": { "type": "string" },
+        "verified": { "type": "boolean" },
+        "location": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "aalimDetails": {
+          "type": "object",
+          "properties": {
+            "age": { "type": "number" },
+            "qualification": { "type": "string" },
+            "isHafiz": { "type": "boolean" },
+            "qiratKnowledge": { "type": "string" },
+            "languages": { "type": "array", "items": { "type": "string" } },
+            "experience": { "type": "string" },
+            "expectedSalary": { "type": "string" },
+            "availability": { "type": "string" },
+            "audioUrl": { "type": "string" }
+          }
+        },
+        "masjidDetails": {
+          "type": "object",
+          "properties": {
+            "masjidName": { "type": "string" },
+            "jamathDetails": { "type": "string" },
+            "accommodationProvided": { "type": "boolean" }
+          }
+        }
+      },
+      "required": ["uid", "role", "fullName", "phoneNumber"]
+    },
+    "Job": {
+      "title": "Job Posting",
+      "description": "Job vacancies posted by Masjids",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "masjidId": { "type": "string" },
+        "masjidName": { "type": "string" },
+        "role": { "type": "string", "enum": ["imam", "muadhin", "arabic_teacher"] },
+        "salary": { "type": "string" },
+        "location": { "type": "string" },
+        "accommodation": { "type": "string" },
+        "description": { "type": "string" },
+        "requirements": { "type": "array", "items": { "type": "string" } },
+        "status": { "type": "string", "enum": ["open", "closed"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["masjidId", "role", "salary", "location"]
+    },
+    "Application": {
+      "title": "Job Application",
+      "description": "Applications from candidates to jobs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "jobId": { "type": "string" },
+        "candidateId": { "type": "string" },
+        "candidateName": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "reviewed", "accepted", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app notifications for users",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "type": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "users": {
+      "schema": "User",
+      "description": "Collection of all user profiles"
+    },
+    "jobs": {
+      "schema": "Job",
+      "description": "Collection of job postings"
+    },
+    "applications": {
+      "schema": "Application",
+      "description": "Collection of job applications"
+    },
+    "notifications": {
+      "schema": "Notification",
+      "description": "Recent notifications for users"
+    }
+  }
+}
